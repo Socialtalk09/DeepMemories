@@ -69,86 +69,109 @@ export function MessageCard({ message, recipients }: MessageCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 transition-all hover:shadow-md group">
+    <div className="group relative bg-white rounded-xl border border-border/40 shadow-card hover:shadow-hover transition-all duration-300 overflow-hidden">
+      {/* Top colored line based on status */}
+      <div className={`h-1.5 w-full ${message.status === "draft" 
+        ? "bg-gradient-to-r from-yellow-400 to-amber-500" 
+        : message.status === "scheduled" 
+        ? "bg-gradient-to-r from-primary-400 to-primary-600"
+        : "bg-gradient-to-r from-green-400 to-teal-500"}`} 
+      />
+      
       <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-start mb-5">
           <div>
-            <Badge variant="outline" className={statusBadge.className}>
+            <Badge 
+              variant="outline" 
+              className={`${
+                message.status === "draft" 
+                  ? "bg-amber-50 text-amber-700 border-amber-200" 
+                  : message.status === "scheduled" 
+                  ? "bg-primary-50 text-primary-700 border-primary-200"
+                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+              } font-medium px-2.5 py-0.5`}
+            >
               <span className="flex items-center">
                 {statusBadge.icon}
                 {statusBadge.label}
               </span>
             </Badge>
-            <h3 className="mt-2 text-lg font-medium text-gray-900 group-hover:text-primary transition-colors">
+            <h3 className="mt-2.5 text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">
               {message.title}
             </h3>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-[180px]">
               <DropdownMenuItem className="cursor-pointer">
                 <Edit className="mr-2 h-4 w-4" />
-                Edit
+                Edit Message
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Eye className="mr-2 h-4 w-4" />
-                Preview
+                Preview Content
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         
-        <div className="font-serif text-gray-600 mb-4 line-clamp-2">
+        <div className="font-serif text-muted-foreground text-sm mb-5 line-clamp-2 leading-relaxed">
           {/* Display first 120 characters of content as preview */}
           {message.content.length > 120
             ? `${message.content.substring(0, 120)}...`
             : message.content}
         </div>
         
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center text-gray-500">
-            <div className="flex -space-x-1 overflow-hidden mr-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+          <div className="flex items-center">
+            <div className="flex -space-x-1.5 overflow-hidden mr-2">
               {messageRecipients.map((recipient, index) => (
-                <Avatar key={index} className="h-6 w-6 border-2 border-white">
-                  <AvatarFallback className="bg-primary-100 text-primary-700 text-xs">
+                <Avatar key={index} className="h-7 w-7 border-2 border-white">
+                  <AvatarFallback className="bg-gradient-to-br from-primary-50 to-primary-100 text-primary-700 text-xs font-medium">
                     {recipient.name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               ))}
               {additionalRecipientCount > 0 && (
-                <div className="h-6 w-6 rounded-full border-2 border-white bg-primary-200 flex items-center justify-center text-xs text-primary-600 font-medium">
+                <div className="h-7 w-7 rounded-full border-2 border-white bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">
                   +{additionalRecipientCount}
                 </div>
               )}
             </div>
-            {recipients.length === 1 ? "1 recipient" : `${recipients.length} recipients`}
+            <span className="text-muted-foreground">
+              {recipients.length === 1 ? "1 recipient" : `${recipients.length} recipients`}
+            </span>
           </div>
           
-          <div className="text-gray-500 flex items-center">
-            <CalendarIcon className="mr-1 h-4 w-4" />
+          <div className="text-muted-foreground flex items-center bg-muted/50 px-2.5 py-1.5 rounded-full">
+            <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
             <span>Delivery: {formatDate(message.deliveryDate)}</span>
           </div>
         </div>
       </div>
       
-      <div className="bg-gray-50 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center text-sm">
+      <div className="bg-muted/30 px-6 py-3 flex items-center justify-between border-t border-border/50">
+        <div className="flex items-center text-xs">
           <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-            message.status === "draft" ? "bg-yellow-500" : "bg-green-500"
+            message.status === "draft" 
+              ? "bg-amber-500" 
+              : message.status === "scheduled"
+              ? "bg-primary"
+              : "bg-emerald-500"
           }`}></span>
-          <span className="text-gray-600">{getLastUpdatedText()}</span>
+          <span className="text-muted-foreground">{getLastUpdatedText()}</span>
         </div>
         
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Edit className="h-4 w-4 text-gray-500 hover:text-primary-500" />
+        <div className="flex space-x-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary-50">
+            <Edit className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Eye className="h-4 w-4 text-gray-500 hover:text-primary-500" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary-50">
+            <Eye className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
