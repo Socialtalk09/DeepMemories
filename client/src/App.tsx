@@ -13,6 +13,21 @@ import RecipientsPage from "@/pages/recipients-page";
 import SettingsPage from "@/pages/settings-page";
 
 function Router() {
+  console.log("Router rendering, current path:", window.location.pathname);
+  
+  // If we're at an unexpected path, redirect to /auth
+  if (!['/', '/messages', '/recipients', '/settings', '/auth'].includes(window.location.pathname)) {
+    // For debugging purposes
+    console.log("Redirecting from unknown path:", window.location.pathname);
+    
+    // Redirect to auth page after a short delay (to allow logs to be visible)
+    setTimeout(() => {
+      window.location.href = "/auth";
+    }, 100);
+    
+    return <div>Redirecting to login page...</div>;
+  }
+  
   return (
     <Switch>
       <ProtectedRoute path="/" component={HomePage} />
