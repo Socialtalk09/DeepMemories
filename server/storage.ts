@@ -1,8 +1,10 @@
 import { users, type User, type InsertUser, recipients, type Recipient, type InsertRecipient, messages, type Message, type InsertMessage, messageRecipients, type MessageRecipient, type InsertMessageRecipient, trustedContacts, type TrustedContact, type InsertTrustedContact } from "@shared/schema";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { db, pool } from "./db";
+import { eq, or, inArray } from "drizzle-orm";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 // modify the interface with any CRUD methods
 // you might need
@@ -44,187 +46,168 @@ export interface IStorage {
   sessionStore: session.SessionStore;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private recipients: Map<number, Recipient>;
-  private messages: Map<number, Message>;
-  private messageRecipients: Map<number, MessageRecipient>;
-  private trustedContacts: Map<number, TrustedContact>;
-  
+export class DatabaseStorage implements IStorage {
   sessionStore: session.SessionStore;
   
-  private userIdCounter: number;
-  private recipientIdCounter: number;
-  private messageIdCounter: number;
-  private messageRecipientIdCounter: number;
-  private trustedContactIdCounter: number;
-
   constructor() {
-    this.users = new Map();
-    this.recipients = new Map();
-    this.messages = new Map();
-    this.messageRecipients = new Map();
-    this.trustedContacts = new Map();
-    
-    this.userIdCounter = 1;
-    this.recipientIdCounter = 1;
-    this.messageIdCounter = 1;
-    this.messageRecipientIdCounter = 1;
-    this.trustedContactIdCounter = 1;
-    
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // clear expired sessions every 24h
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
   }
-
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
-  }
   
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
   
-  // Recipient methods
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+  
   async getRecipientById(id: number): Promise<Recipient | undefined> {
-    return this.recipients.get(id);
+    const [recipient] = await db.select().from(recipients).where(eq(recipients.id, id));
+    return recipient;
   }
   
   async getRecipientsByUserId(userId: number): Promise<Recipient[]> {
-    return Array.from(this.recipients.values()).filter(
-      (recipient) => recipient.userId === userId
-    );
+    return await db.select().from(recipients).where(eq(recipients.userId, userId));
   }
   
   async getRecipientsByIds(ids: number[]): Promise<Recipient[]> {
-    return Array.from(this.recipients.values()).filter(
-      (recipient) => ids.includes(recipient.id)
-    );
+    if (ids.length === 0) return [];
+    return await db.select().from(recipients).where(inArray(recipients.id, ids));
   }
   
   async createRecipient(insertRecipient: InsertRecipient): Promise<Recipient> {
-    const id = this.recipientIdCounter++;
-    const recipient: Recipient = { ...insertRecipient, id };
-    this.recipients.set(id, recipient);
+    const [recipient] = await db.insert(recipients).values(insertRecipient).returning();
     return recipient;
   }
   
   async updateRecipient(id: number, insertRecipient: InsertRecipient): Promise<Recipient> {
-    const recipient: Recipient = { ...insertRecipient, id };
-    this.recipients.set(id, recipient);
+    const [recipient] = await db
+      .update(recipients)
+      .set(insertRecipient)
+      .where(eq(recipients.id, id))
+      .returning();
     return recipient;
   }
   
   async deleteRecipient(id: number): Promise<void> {
-    this.recipients.delete(id);
+    await db.delete(recipients).where(eq(recipients.id, id));
   }
   
-  // Message methods
   async getMessageById(id: number): Promise<Message | undefined> {
-    return this.messages.get(id);
+    const [message] = await db.select().from(messages).where(eq(messages.id, id));
+    return message;
   }
   
   async getMessagesByUserId(userId: number): Promise<Message[]> {
-    return Array.from(this.messages.values()).filter(
-      (message) => message.userId === userId
-    );
+    return await db.select().from(messages).where(eq(messages.userId, userId));
   }
   
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = this.messageIdCounter++;
     const lastUpdated = new Date();
-    const message: Message = { ...insertMessage, id, lastUpdated };
-    this.messages.set(id, message);
+    const [message] = await db
+      .insert(messages)
+      .values({ ...insertMessage, lastUpdated })
+      .returning();
     return message;
   }
   
   async updateMessage(id: number, insertMessage: InsertMessage): Promise<Message> {
     const lastUpdated = new Date();
-    const message: Message = { ...insertMessage, id, lastUpdated };
-    this.messages.set(id, message);
+    const [message] = await db
+      .update(messages)
+      .set({ ...insertMessage, lastUpdated })
+      .where(eq(messages.id, id))
+      .returning();
     return message;
   }
   
   async deleteMessage(id: number): Promise<void> {
-    this.messages.delete(id);
+    await db.delete(messages).where(eq(messages.id, id));
+    await this.deleteMessageRecipientsByMessageId(id);
   }
   
-  // MessageRecipient methods
   async getMessageRecipientsByMessageId(messageId: number): Promise<MessageRecipient[]> {
-    return Array.from(this.messageRecipients.values()).filter(
-      (mr) => mr.messageId === messageId
-    );
+    return await db
+      .select()
+      .from(messageRecipients)
+      .where(eq(messageRecipients.messageId, messageId));
   }
   
   async createMessageRecipient(insertMessageRecipient: InsertMessageRecipient): Promise<MessageRecipient> {
-    const id = this.messageRecipientIdCounter++;
-    const notificationSent = false;
-    const delivered = false;
-    const messageRecipient: MessageRecipient = { 
-      ...insertMessageRecipient, 
-      id, 
-      notificationSent, 
-      delivered 
-    };
-    this.messageRecipients.set(id, messageRecipient);
+    const createdAt = new Date();
+    const [messageRecipient] = await db
+      .insert(messageRecipients)
+      .values({ ...insertMessageRecipient, createdAt })
+      .returning();
     return messageRecipient;
   }
   
   async deleteMessageRecipientsByMessageId(messageId: number): Promise<void> {
-    const messageRecipientsToDelete = Array.from(this.messageRecipients.entries())
-      .filter(([_, mr]) => mr.messageId === messageId);
-    
-    for (const [id] of messageRecipientsToDelete) {
-      this.messageRecipients.delete(id);
-    }
+    await db
+      .delete(messageRecipients)
+      .where(eq(messageRecipients.messageId, messageId));
   }
   
-  // TrustedContact methods
   async getTrustedContactById(id: number): Promise<TrustedContact | undefined> {
-    return this.trustedContacts.get(id);
+    const [trustedContact] = await db
+      .select()
+      .from(trustedContacts)
+      .where(eq(trustedContacts.id, id));
+    return trustedContact;
   }
   
   async getTrustedContactsByUserId(userId: number): Promise<TrustedContact[]> {
-    return Array.from(this.trustedContacts.values()).filter(
-      (contact) => contact.userId === userId
-    );
+    return await db
+      .select()
+      .from(trustedContacts)
+      .where(eq(trustedContacts.userId, userId));
   }
   
   async createTrustedContact(insertTrustedContact: InsertTrustedContact): Promise<TrustedContact> {
-    const id = this.trustedContactIdCounter++;
-    const verified = false;
-    const trustedContact: TrustedContact = { ...insertTrustedContact, id, verified };
-    this.trustedContacts.set(id, trustedContact);
+    const verified = false; // New trusted contacts are not verified by default
+    const [trustedContact] = await db
+      .insert(trustedContacts)
+      .values({ ...insertTrustedContact, verified })
+      .returning();
     return trustedContact;
   }
   
   async updateTrustedContact(id: number, insertTrustedContact: InsertTrustedContact): Promise<TrustedContact> {
-    const existingContact = this.trustedContacts.get(id);
+    // Preserve the verified status when updating
+    const [existingContact] = await db
+      .select()
+      .from(trustedContacts)
+      .where(eq(trustedContacts.id, id));
+    
     const verified = existingContact ? existingContact.verified : false;
-    const trustedContact: TrustedContact = { ...insertTrustedContact, id, verified };
-    this.trustedContacts.set(id, trustedContact);
+    
+    const [trustedContact] = await db
+      .update(trustedContacts)
+      .set({ ...insertTrustedContact, verified })
+      .where(eq(trustedContacts.id, id))
+      .returning();
+    
     return trustedContact;
   }
   
   async deleteTrustedContact(id: number): Promise<void> {
-    this.trustedContacts.delete(id);
+    await db.delete(trustedContacts).where(eq(trustedContacts.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
