@@ -71,6 +71,9 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
+      {/* Header gradient */}
+      <div className="fixed top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 z-50"></div>
+      
       {/* Left side - Form */}
       <div className="flex flex-col justify-center p-8 sm:px-12 md:px-16 lg:px-20 bg-white">
         <div className="w-full max-w-md mx-auto">
@@ -158,7 +161,7 @@ export default function AuthPage() {
 
                   <Button 
                     type="submit" 
-                    className="w-full mt-4 py-6 bg-blue-600 hover:bg-blue-700 text-white font-medium text-base"
+                    className="w-full mt-4 py-6 bg-blue-600 hover:bg-blue-700 text-white font-medium text-base rounded-md"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
@@ -284,7 +287,7 @@ export default function AuthPage() {
 
                   <Button 
                     type="submit" 
-                    className="w-full mt-4 py-6 bg-blue-600 hover:bg-blue-700 text-white font-medium text-base"
+                    className="w-full mt-4 py-6 bg-blue-600 hover:bg-blue-700 text-white font-medium text-base rounded-md"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (
@@ -304,7 +307,7 @@ export default function AuthPage() {
       </div>
 
       {/* Right side - Hero */}
-      <div className="hidden md:flex flex-col justify-center items-center relative bg-gradient-to-br from-blue-100 to-purple-100">
+      <div className="hidden md:flex flex-col justify-center items-center relative bg-gradient-to-br from-blue-200 via-purple-100 to-pink-100">
         <div className="w-full max-w-md px-8 text-center">
           <div className="bg-white rounded-full inline-flex justify-center items-center p-6 mb-6 shadow-sm">
             <Heart className="h-10 w-10 text-blue-600" />

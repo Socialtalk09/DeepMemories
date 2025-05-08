@@ -88,6 +88,14 @@
   p {
     @apply leading-relaxed;
   }
+  
+  input {
+    @apply rounded-md h-12;
+  }
+  
+  button {
+    @apply rounded-md;
+  }
 }
 
 @layer components {
