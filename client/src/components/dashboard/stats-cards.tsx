@@ -1,4 +1,19 @@
-import { Forward, FileHeart, ShieldCheck, TrendingUp } from "lucide-react";
+import { 
+  Users, 
+  MessageCircle, 
+  ShieldCheck, 
+  TrendingUp,
+  Calendar,
+  Clock
+} from "lucide-react";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface StatsCardsProps {
   messageCount: number;
@@ -12,32 +27,27 @@ export default function StatsCards({
   trustedContactCount
 }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      {/* Messages Stats Card */}
-      <StatCard 
-        title="Created Messages"
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <StatCard
+        title="Messages"
         value={messageCount}
-        icon={<Forward />}
+        icon={<MessageCircle className="h-5 w-5" />}
         color="primary"
-        description={messageCount === 0 ? "No messages yet" : `${messageCount} message${messageCount !== 1 ? 's' : ''} created`}
+        description="Total messages created"
       />
-      
-      {/* Recipients Stats Card */}
-      <StatCard 
+      <StatCard
         title="Recipients"
         value={recipientCount}
-        icon={<FileHeart />}
+        icon={<Users className="h-5 w-5" />}
         color="secondary"
-        description={recipientCount === 0 ? "No recipients yet" : `${recipientCount} recipient${recipientCount !== 1 ? 's' : ''} added`}
+        description="People receiving your messages"
       />
-      
-      {/* Trusted Contacts Stats Card */}
-      <StatCard 
+      <StatCard
         title="Trusted Contacts"
         value={trustedContactCount}
-        icon={<ShieldCheck />}
+        icon={<ShieldCheck className="h-5 w-5" />}
         color="accent"
-        description={trustedContactCount === 0 ? "No trusted contacts yet" : `${trustedContactCount} contact${trustedContactCount !== 1 ? 's' : ''} trusted`}
+        description="Contacts who can verify your passing"
       />
     </div>
   );
@@ -53,69 +63,37 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon, color, description }: StatCardProps) {
   const colorClasses = {
-    primary: {
-      bgLight: "bg-primary-50",
-      bgDark: "bg-primary",
-      text: "text-primary-700",
-      border: "border-primary-100",
-      gradient: "from-primary-50 to-primary-100/50"
-    },
-    secondary: {
-      bgLight: "bg-secondary-50",
-      bgDark: "bg-secondary",
-      text: "text-secondary-700",
-      border: "border-secondary-100",
-      gradient: "from-secondary-50 to-secondary-100/50"
-    },
-    accent: {
-      bgLight: "bg-accent-50",
-      bgDark: "bg-accent",
-      text: "text-accent-700",
-      border: "border-accent-100",
-      gradient: "from-accent-50 to-accent-100/50"
-    },
-    success: {
-      bgLight: "bg-green-50",
-      bgDark: "bg-green-500",
-      text: "text-green-700",
-      border: "border-green-100",
-      gradient: "from-green-50 to-green-100/50"
-    }
+    primary: "bg-blue-50 text-blue-600",
+    secondary: "bg-purple-50 text-purple-600",
+    accent: "bg-pink-50 text-pink-600",
+    success: "bg-green-50 text-green-600",
   };
-
-  const classes = colorClasses[color];
+  
+  const borderClasses = {
+    primary: "border-blue-100",
+    secondary: "border-purple-100",
+    accent: "border-pink-100",
+    success: "border-green-100",
+  };
   
   return (
-    <div className="group relative overflow-hidden bg-white rounded-xl border border-border/40 shadow-card hover:shadow-hover transition-shadow duration-300">
-      {/* Card content */}
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`rounded-lg p-3 ${classes.bgLight} ${classes.text}`}>
+    <Card className={cn("overflow-hidden", borderClasses[color])}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium">
+            {title}
+          </CardTitle>
+          <div className={cn("p-1.5 rounded-md", colorClasses[color])}>
             {icon}
           </div>
-          
-          <div className={`text-xs font-medium px-2 py-1 rounded-full ${classes.bgLight} ${classes.text} border ${classes.border} flex items-center`}>
-            <TrendingUp className="h-3 w-3 mr-1" />
-            <span>Active</span>
-          </div>
         </div>
-        
-        <div>
-          <h3 className="text-muted-foreground text-sm font-medium mb-1">{title}</h3>
-          <div className="flex items-baseline">
-            <p className="text-3xl font-bold">{value}</p>
-            {description && (
-              <span className="ml-2 text-xs text-muted-foreground">{description}</span>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {/* Bottom gradient bar */}
-      <div className={`h-1 w-full bg-gradient-to-r ${classes.gradient}`}></div>
-      
-      {/* Hover effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-    </div>
+        {description && (
+          <CardDescription>{description}</CardDescription>
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+      </CardContent>
+    </Card>
   );
 }

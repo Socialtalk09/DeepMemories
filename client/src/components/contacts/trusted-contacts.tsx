@@ -1,8 +1,25 @@
+import { useState } from "react";
+import { Check, Edit, Loader2, MoreHorizontal, Plus, Shield, Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrustedContact } from "@shared/schema";
-import { ShieldCheck, PlusCircle, Loader2 } from "lucide-react";
-import { Link } from "wouter";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import TrustedContactForm from "./trusted-contact-form";
 
 interface TrustedContactsProps {
   contacts: TrustedContact[];
@@ -10,98 +27,193 @@ interface TrustedContactsProps {
 }
 
 export default function TrustedContacts({ contacts, isLoading }: TrustedContactsProps) {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<TrustedContact | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleAddContact = (data: any) => {
+    // This would connect to your createTrustedContact mutation
+    console.log("Adding contact:", data);
+    setIsPending(true);
+    setTimeout(() => {
+      setIsPending(false);
+      setIsAddDialogOpen(false);
+    }, 1000);
+  };
+  
+  const handleEditContact = (data: any) => {
+    // This would connect to your updateTrustedContact mutation
+    console.log("Editing contact:", data);
+    setIsPending(true);
+    setTimeout(() => {
+      setIsPending(false);
+      setIsEditDialogOpen(false);
+    }, 1000);
+  };
+  
+  const handleDeleteContact = (contact: TrustedContact) => {
+    // This would connect to your deleteTrustedContact mutation
+    console.log("Deleting contact:", contact);
+  };
+  
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Trusted Contacts</h2>
-        <Link href="/settings" className="text-sm font-medium text-primary hover:text-primary-600 flex items-center">
-          Manage contacts <ArrowRight className="ml-1 h-4 w-4" />
-        </Link>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Trusted Contacts</h2>
+          <p className="text-muted-foreground">Manage people who can help verify your passing</p>
+        </div>
+        
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1">
+              <Plus className="h-4 w-4" /> Add Contact
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Add Trusted Contact</DialogTitle>
+              <DialogDescription>
+                Add someone who can help verify your passing and facilitate message delivery
+              </DialogDescription>
+            </DialogHeader>
+            <TrustedContactForm 
+              onSubmit={handleAddContact} 
+              isPending={isPending}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
       
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="h-64 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
         </div>
+      ) : contacts.length === 0 ? (
+        <Card className="bg-muted/40">
+          <CardContent className="pt-10 pb-10 flex flex-col items-center justify-center text-center">
+            <div className="mb-4 bg-primary/10 p-3 rounded-full">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No trusted contacts yet</h3>
+            <p className="text-muted-foreground max-w-md mb-6">
+              Trusted contacts are people who can help verify your passing and facilitate the delivery of your messages
+            </p>
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Add Your First Contact
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <p className="text-gray-600 mb-4">Trusted contacts can confirm delivery triggers for your messages when the time comes.</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {contacts.length === 0 ? (
-              <div className="md:col-span-2 p-6 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                <ShieldCheck className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <h3 className="text-base font-medium text-gray-700 mb-1">No trusted contacts yet</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Add someone you trust to help with message delivery after your passing.
-                </p>
-                <Link href="/settings">
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">
-                    Add Trusted Contact
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <>
-                {contacts.map((contact) => (
-                  <div 
-                    key={contact.id} 
-                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-primary-200 transition-all"
-                  >
-                    <Avatar className="h-12 w-12 mr-4">
-                      <AvatarFallback className="bg-primary-100 text-primary-700">
-                        {contact.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-medium text-gray-900">{contact.name}</h4>
-                      <p className="text-sm text-gray-500">{contact.email}</p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={contact.verified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
-                    >
-                      {contact.verified ? "Verified" : "Pending"}
-                    </Badge>
-                  </div>
-                ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {contacts.map((contact) => (
+            <Card key={contact.id} className="overflow-hidden">
+              <CardHeader className="pb-3 relative">
+                <div className="absolute top-3 right-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setSelectedContact(contact);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDeleteContact(contact)}
+                      >
+                        <Trash className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 
-                {/* Add Trusted Contact Card */}
-                <div 
-                  className="flex items-center p-4 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-primary-300 hover:bg-gray-50 transition-all"
-                  onClick={() => window.location.href = "/settings"}
-                >
-                  <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center text-primary mr-4">
-                    <PlusCircle className="h-6 w-6" />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 border">
+                    <AvatarFallback className="bg-primary-50 text-primary">
+                      {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">Add Trusted Contact</h4>
-                    <p className="text-xs text-gray-500">Add someone you trust to help with message delivery</p>
+                    <CardTitle className="text-lg">{contact.name}</CardTitle>
+                    <CardDescription className="line-clamp-1">
+                      {contact.verified ? (
+                        <Badge variant="outline" className="gap-1 mt-1 border-green-200 text-green-600 bg-green-50">
+                          <Check className="h-3 w-3" /> Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground mt-1">
+                          Pending verification
+                        </Badge>
+                      )}
+                    </CardDescription>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Email:</span>
+                    <span className="font-medium">{contact.email}</span>
+                  </div>
+                  {contact.phone && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Phone:</span>
+                      <span className="font-medium">{contact.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-    </section>
+      
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Trusted Contact</DialogTitle>
+            <DialogDescription>
+              Update contact information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedContact && (
+            <TrustedContactForm 
+              initialData={selectedContact}
+              onSubmit={handleEditContact} 
+              isPending={isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
 function ArrowRight(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
+      {...props}
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      {...props}
     >
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
     </svg>
   );
 }
