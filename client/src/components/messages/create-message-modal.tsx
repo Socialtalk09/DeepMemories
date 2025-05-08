@@ -82,7 +82,7 @@ export function CreateMessageModal({ isOpen, onClose, recipients }: CreateMessag
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <MessageSquarePlus className="h-5 w-5 text-primary" />
