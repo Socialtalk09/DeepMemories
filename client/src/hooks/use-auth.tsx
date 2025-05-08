@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -16,22 +16,36 @@ type AuthContextType = {
   loginMutation: UseMutationResult<Omit<SelectUser, "password">, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<Omit<SelectUser, "password">, Error, InsertUser>;
+  checkAuthStatus: () => void;
 };
 
 type LoginData = Pick<InsertUser, "username" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  
   const {
     data: user,
     error,
     isLoading,
+    refetch: refetchUser,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
+
+  // Function to check authentication status
+  const checkAuthStatus = () => {
+    refetchUser();
+  };
+
+  // Initial check on mount and after any navigation
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
@@ -45,6 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome back, ${user.firstName || user.username}!`,
       });
       setLocation("/");
+      
+      // Refetch user after login to ensure we have the latest data
+      setTimeout(() => {
+        checkAuthStatus();
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
@@ -67,6 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome to Dearly, ${user.firstName || user.username}!`,
       });
       setLocation("/");
+      
+      // Refetch user after registration to ensure we have the latest data
+      setTimeout(() => {
+        checkAuthStatus();
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
@@ -83,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -107,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        checkAuthStatus,
       }}
     >
       {children}

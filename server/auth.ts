@@ -39,8 +39,10 @@ export function setupAuth(app: Express) {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax"
-    }
+      sameSite: "lax",
+      path: "/"
+    },
+    name: "dearly.sid" // Custom session name for easier identification
   };
 
   app.set("trust proxy", 1);

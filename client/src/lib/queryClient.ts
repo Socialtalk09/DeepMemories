@@ -2,8 +2,18 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage: string;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.message || res.statusText;
+    } catch (e) {
+      try {
+        errorMessage = await res.text();
+      } catch (e2) {
+        errorMessage = res.statusText;
+      }
+    }
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 
@@ -14,9 +24,13 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: {
+      ...(data ? { "Content-Type": "application/json" } : {}),
+      "Cache-Control": "no-cache",
+    },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
+    cache: "no-store",
   });
 
   await throwIfResNotOk(res);
@@ -31,6 +45,11 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache", 
+        "Pragma": "no-cache"
+      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
@@ -46,12 +65,12 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      refetchOnWindowFocus: true,
+      staleTime: 60 * 1000, // 1 minute
+      retry: 1,
     },
     mutations: {
-      retry: false,
+      retry: 1,
     },
   },
 });
