@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AlignJustify, Bell, Heart, LogOut, Settings, User } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Logo } from "@/components/ui/logo";
 
 export default function Header() {
   const [location] = useLocation();
@@ -40,10 +41,7 @@ export default function Header() {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <div className="bg-primary-50 p-1.5 rounded-md mr-2">
-                <Heart className="text-primary h-5 w-5" />
-              </div>
-              <span className="gradient-heading font-bold text-xl">Dearly</span>
+              <Logo size="md" />
             </div>
             
             <nav className="hidden md:ml-10 md:flex md:space-x-1">
@@ -128,10 +126,7 @@ export default function Header() {
                 <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                   <div className="flex flex-col h-full">
                     <div className="flex items-center py-6">
-                      <div className="bg-primary-50 p-1.5 rounded-md mr-2">
-                        <Heart className="text-primary h-5 w-5" />
-                      </div>
-                      <span className="gradient-heading font-bold text-xl">Dearly</span>
+                      <Logo size="md" />
                     </div>
                     
                     <nav className="flex flex-col space-y-1 py-6">

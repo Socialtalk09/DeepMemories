@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
 import { Loader2, Heart, Calendar, CheckCircle, Edit3, User, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import {
   Form,
   FormControl,
@@ -77,9 +78,8 @@ export default function AuthPage() {
       {/* Left side - Form */}
       <div className="flex flex-col justify-center p-8 sm:px-12 md:px-16 lg:px-20 bg-white">
         <div className="w-full max-w-md mx-auto">
-          <div className="inline-flex items-center mb-8 px-4 py-2 rounded-full bg-blue-50 text-blue-600">
-            <Heart className="h-5 w-5 mr-2 text-blue-600" />
-            <span className="font-semibold text-xl">Dearly</span>
+          <div className="mb-8">
+            <Logo size="md" />
           </div>
           
           <div className="inline-flex w-full mb-6 rounded-lg overflow-hidden">
@@ -309,8 +309,8 @@ export default function AuthPage() {
       {/* Right side - Hero */}
       <div className="hidden md:flex flex-col justify-center items-center relative bg-gradient-to-br from-blue-200 via-purple-100 to-pink-100">
         <div className="w-full max-w-md px-8 text-center">
-          <div className="bg-white rounded-full inline-flex justify-center items-center p-6 mb-6 shadow-sm">
-            <Heart className="h-10 w-10 text-blue-600" />
+          <div className="mb-6">
+            <Logo size="lg" showText={false} className="mx-auto" />
           </div>
           
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Digital Legacy</h2>
