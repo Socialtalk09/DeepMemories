@@ -14,9 +14,8 @@ type UserType = {
   username: string;
   password: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
-  createdAt: Date;
+  firstName: string | null;
+  lastName: string | null;
 };
 
 // Extend Express's User interface
