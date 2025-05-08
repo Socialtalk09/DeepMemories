@@ -43,11 +43,11 @@ export interface IStorage {
   deleteTrustedContact(id: number): Promise<void>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any type to resolve TypeScript error with session.SessionStore
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any type to resolve TypeScript error
   
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
@@ -149,10 +149,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createMessageRecipient(insertMessageRecipient: InsertMessageRecipient): Promise<MessageRecipient> {
-    const createdAt = new Date();
     const [messageRecipient] = await db
       .insert(messageRecipients)
-      .values({ ...insertMessageRecipient, createdAt })
+      .values(insertMessageRecipient)
       .returning();
     return messageRecipient;
   }
