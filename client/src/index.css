@@ -1,51 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-      --background: 0 0% 100%;
---foreground: 20 14.3% 4.1%;
---muted: 60 4.8% 95.9%;
---muted-foreground: 25 5.3% 44.7%;
---popover: 0 0% 100%;
---popover-foreground: 20 14.3% 4.1%;
---card: 0 0% 100%;
---card-foreground: 20 14.3% 4.1%;
---border: 20 5.9% 90%;
---input: 20 5.9% 90%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 60 4.8% 95.9%;
---secondary-foreground: 24 9.8% 10%;
---accent: 60 4.8% 95.9%;
---accent-foreground: 24 9.8% 10%;
---destructive: 0 84.2% 60.2%;
---destructive-foreground: 60 9.1% 97.8%;
---ring: 20 14.3% 4.1%;
---radius: 0.5rem;
-  }
-  .dark {
-      --background: 240 10% 3.9%;
---foreground: 0 0% 98%;
---muted: 240 3.7% 15.9%;
---muted-foreground: 240 5% 64.9%;
---popover: 240 10% 3.9%;
---popover-foreground: 0 0% 98%;
---card: 240 10% 3.9%;
---card-foreground: 0 0% 98%;
---border: 240 3.7% 15.9%;
---input: 240 3.7% 15.9%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 240 3.7% 15.9%;
---secondary-foreground: 0 0% 98%;
---accent: 240 3.7% 15.9%;
---accent-foreground: 0 0% 98%;
---destructive: 0 62.8% 30.6%;
---destructive-foreground: 0 0% 98%;
---ring: 240 4.9% 83.9%;
---radius: 0.5rem;
-  }
+  --background: 210 20% 98%;
+  --foreground: 220 20% 16%;
+  --muted: 210 20% 92%;
+  --muted-foreground: 215 16% 45%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 20% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 20% 16%;
+  --border: 214 20% 90%;
+  --input: 214 20% 90%;
+  --primary: 220 90% 52%;
+  --primary-foreground: 210 40% 98%;
+  --primary-muted: 223 100% 88%;
+  --secondary: 340 85% 55%;
+  --secondary-foreground: 355 100% 97%;
+  --secondary-muted: 340 100% 96%;
+  --accent: 262 83% 58%;
+  --accent-foreground: 210 40% 98%;
+  --accent-muted: 262 100% 94%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 72% 50%;
+  --success-foreground: 210 40% 98%;
+  --ring: 215 20% 65%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 220 30% 10%;
+  --foreground: 210 20% 98%;
+  --muted: 217 19% 18%;
+  --muted-foreground: 215 16% 65%;
+  --popover: 220 30% 10%;
+  --popover-foreground: 210 20% 98%;
+  --card: 224 25% 15%;
+  --card-foreground: 210 20% 98%;
+  --border: 215 28% 25%;
+  --input: 215 28% 25%;
+  --primary: 220 90% 60%;
+  --primary-foreground: 210 40% 98%;
+  --primary-muted: 223 60% 33%;
+  --secondary: 340 85% 60%;
+  --secondary-foreground: 210 40% 98%;
+  --secondary-muted: 340 70% 35%;
+  --accent: 262 83% 64%;
+  --accent-foreground: 210 40% 98%;
+  --accent-muted: 262 70% 35%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 70% 45%;
+  --success-foreground: 210 40% 98%;
+  --ring: 215 28% 65%;
+  --radius: 0.5rem;
+}
 
 @layer base {
   * {
@@ -54,5 +67,68 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+  
+  h1 {
+    @apply text-3xl font-bold md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl font-semibold md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl font-semibold md:text-2xl;
+  }
+  
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  .gradient-heading {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+  
+  .gradient-bg {
+    @apply bg-gradient-to-r from-primary-muted to-secondary-muted;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:border-primary/40;
+  }
+  
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm;
+  }
+  
+  .form-input-wrapper {
+    @apply relative flex items-center;
+  }
+  
+  .form-input-wrapper .input-icon {
+    @apply absolute left-3 h-5 w-5 text-muted-foreground;
+  }
+  
+  .form-input-wrapper input {
+    @apply pl-10;
+  }
+  
+  .animated-btn {
+    @apply relative overflow-hidden transition-all duration-200;
+  }
+  
+  .animated-btn::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-300 ease-in-out;
+  }
+  
+  .animated-btn:hover::after {
+    @apply translate-x-full;
   }
 }
