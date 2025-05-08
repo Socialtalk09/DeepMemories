@@ -1,9 +1,23 @@
+import { useState } from "react";
 import { Message, Recipient } from "@shared/schema";
-import { Loader2, ArrowRight, Mail, Plus, FileText, SendHorizontal, Calendar } from "lucide-react";
-import { MessageCard } from "./message-card";
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Clock, Edit, Loader2, MessageSquarePlus, MoreHorizontal, Trash } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from "date-fns";
 
 interface MessageListProps {
   messages: Message[];
@@ -13,114 +27,182 @@ interface MessageListProps {
   showAllMessages?: boolean;
 }
 
-export default function MessageList({ 
-  messages, 
-  recipients, 
-  isLoading, 
+export default function MessageList({
+  messages,
+  recipients,
+  isLoading,
   onCreateMessage,
-  showAllMessages = false
+  showAllMessages = false,
 }: MessageListProps) {
-  // For the dashboard, just show a few messages
-  const displayMessages = showAllMessages ? messages : messages.slice(0, 4);
+  const [filterValue, setFilterValue] = useState<"all" | "scheduled" | "draft">("all");
   
+  const filteredMessages = messages.filter(message => {
+    if (filterValue === "all") return true;
+    if (filterValue === "scheduled") return message.status === "scheduled";
+    if (filterValue === "draft") return message.status === "draft";
+    return true;
+  });
+  
+  const getRecipientNames = (messageId: number) => {
+    // This would need connection to your getMessage with recipients query or join
+    const recipientNames = ["John Doe", "Jane Smith"]; // Placeholder
+    return recipientNames.join(", ");
+  };
+  
+  const getMessageStatusBadge = (status: string) => {
+    if (status === "scheduled") {
+      return (
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-200">
+          <Clock className="h-3 w-3 mr-1" />
+          Scheduled
+        </Badge>
+      );
+    } 
+    
+    if (status === "delivered") {
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50 border-green-200">
+          Delivered
+        </Badge>
+      );
+    }
+    
+    return (
+      <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">
+        Draft
+      </Badge>
+    );
+  };
+  
+  const handleEditMessage = (message: Message) => {
+    // This would connect to your edit message flow
+    console.log("Edit message:", message.id);
+  };
+  
+  const handleDeleteMessage = (message: Message) => {
+    // This would connect to your delete message mutation
+    console.log("Delete message:", message.id);
+  };
+
   return (
-    <section className="mb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1 flex items-center">
-            <Mail className="mr-2 h-5 w-5 text-primary" />
-            Your Messages
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Messages you've created to be delivered in the future
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight">Messages</h2>
+          <p className="text-muted-foreground">Manage your scheduled and draft messages</p>
         </div>
         
-        {!showAllMessages && messages.length > 4 && (
-          <Link href="/messages" className="text-sm font-medium text-primary hover:text-primary-600 flex items-center group">
-            View all messages 
-            <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        )}
+        <Button onClick={onCreateMessage} className="ml-auto">
+          <MessageSquarePlus className="h-4 w-4 mr-2" />
+          Create Message
+        </Button>
       </div>
       
+      <Tabs 
+        defaultValue="all" 
+        value={filterValue} 
+        onValueChange={(v) => setFilterValue(v as "all" | "scheduled" | "draft")}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="all">All Messages</TabsTrigger>
+          <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
+          <TabsTrigger value="draft">Drafts</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      
       {isLoading ? (
-        <div className="flex justify-center items-center py-16 bg-white/50 rounded-xl border border-border/50">
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading your messages...</p>
-          </div>
+        <div className="h-64 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
         </div>
-      ) : displayMessages.length === 0 ? (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-border/50 shadow-card p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-50 to-primary-100 p-4 inline-flex items-center justify-center mb-6 shadow-sm">
-            <Mail className="h-8 w-8 text-primary" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">Create your first message</h3>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Start crafting heartfelt messages for your loved ones that will be delivered in the future or after your passing.
-          </p>
-          <Button 
-            className="px-6 py-2.5 h-11 bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-sm animated-btn"
-            onClick={onCreateMessage}
-          >
-            <SendHorizontal className="mr-2 h-4 w-4" />
-            Create Your First Message
-          </Button>
-          
-          <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted-foreground">
-            <FeaturePoint icon={<SendHorizontal className="h-4 w-4" />} text="Securely encrypted" />
-            <FeaturePoint icon={<Calendar className="h-4 w-4" />} text="Scheduled delivery" />
-            <FeaturePoint icon={<FileText className="h-4 w-4" />} text="Multiple formats" />
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {displayMessages.map((message) => (
-            <MessageCard 
-              key={message.id}
-              message={message}
-              recipients={recipients}
-            />
-          ))}
-          
-          {/* Create New Card */}
-          <div 
-            className={cn(
-              "group relative bg-gradient-to-br from-primary-50/50 to-primary-100/30 rounded-xl",
-              "border border-primary-100/80 shadow-sm p-6 flex flex-col items-center justify-center",
-              "cursor-pointer hover:shadow-md transition-all duration-200 overflow-hidden"
-            )}
-            onClick={onCreateMessage}
-          >
-            {/* Background pattern */}
-            <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTAgMGg0djRIMHptMjAgMGg0djRoLTR6bTIwIDBoNHY0aC00ek0wIDIwaDR2NGgtNHptMjAgMGg0djRoLTR6bTIwIDBoNHY0aC00ek0wIDQwaDR2NGgtNHptMjAgMGg0djRoLTR6bTIwIDBoNHY0aC00eiIgZmlsbD0iY3VycmVudENvbG9yIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz4KPC9zdmc+')]"></div>
-            
-            <div className="relative flex flex-col items-center">
-              <div className="rounded-full bg-white p-3.5 mb-4 text-primary shadow-sm group-hover:bg-primary-50 transition-all ring-4 ring-white/30">
-                <Plus className="h-6 w-6" />
-              </div>
-              <h3 className="text-primary-700 font-medium mb-2 group-hover:text-primary-800 transition-all">Create New Message</h3>
-              <p className="text-primary-600/70 text-sm text-center max-w-[200px]">
-                Add a letter, video, or document for your loved ones
-              </p>
-              
-              <div className="absolute -bottom-14 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-primary/5 rounded-full filter blur-xl opacity-80 group-hover:opacity-100 transition-opacity"></div>
+      ) : filteredMessages.length === 0 ? (
+        <Card className="bg-muted/40">
+          <CardContent className="pt-10 pb-10 flex flex-col items-center justify-center text-center">
+            <div className="mb-4 bg-primary/10 p-3 rounded-full">
+              <MessageSquarePlus className="h-10 w-10 text-primary" />
             </div>
-          </div>
+            <h3 className="text-xl font-semibold mb-2">No messages found</h3>
+            <p className="text-muted-foreground max-w-md mb-6">
+              {filterValue === "all" 
+                ? "You haven't created any messages yet" 
+                : filterValue === "scheduled" 
+                  ? "You don't have any scheduled messages" 
+                  : "You don't have any draft messages"}
+            </p>
+            <Button onClick={onCreateMessage}>
+              Create Your First Message
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {filteredMessages.map((message) => (
+            <Card key={message.id} className="overflow-hidden group relative">
+              <CardHeader className="pb-2">
+                <div className="absolute top-3 right-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEditMessage(message)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDeleteMessage(message)}
+                      >
+                        <Trash className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-xl">{message.title}</CardTitle>
+                    {showAllMessages && (
+                      <CardDescription className="line-clamp-1 text-sm mt-1">
+                        To: {getRecipientNames(message.id)}
+                      </CardDescription>
+                    )}
+                  </div>
+                  <div>
+                    {getMessageStatusBadge(message.status)}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-sm line-clamp-2">{message.content}</p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2 justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <span>Type: {message.type.charAt(0).toUpperCase() + message.type.slice(1)}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <span>
+                        Delivery: {message.deliveryType.charAt(0).toUpperCase() + message.deliveryType.slice(1)}
+                      </span>
+                      
+                      {message.deliveryDate && (
+                        <span>
+                          Date: {format(new Date(message.deliveryDate), "PPP")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-    </section>
-  );
-}
-
-function FeaturePoint({ icon, text }: { icon: React.ReactNode, text: string }) {
-  return (
-    <div className="flex items-center">
-      <div className="bg-muted rounded-full p-1.5 mr-2">
-        {icon}
-      </div>
-      <span>{text}</span>
     </div>
   );
 }
