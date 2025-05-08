@@ -5,12 +5,25 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser, insertUserSchema } from "@shared/schema";
+import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Define the User type for TypeScript that matches our database schema
+type UserType = {
+  id: number;
+  username: string;
+  password: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  createdAt: Date;
+};
+
+// Extend Express's User interface
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface User extends UserType {}
   }
 }
 
@@ -118,7 +131,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: User | false, info: any) => {
+    passport.authenticate("local", (err: Error | null, user: UserType | false, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(400).json({ message: "Invalid username or password" });
       
