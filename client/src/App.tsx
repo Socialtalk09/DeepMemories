@@ -11,25 +11,32 @@ import AuthPage from "@/pages/auth-page";
 import MessagesPage from "@/pages/messages-page";
 import RecipientsPage from "@/pages/recipients-page";
 import SettingsPage from "@/pages/settings-page";
+import LandingPage from "@/pages/landing-page";
 
 function Router() {
   console.log("Router rendering, current path:", window.location.pathname);
   
-  // If we're at an unexpected path, redirect to /auth
-  if (!['/', '/messages', '/recipients', '/settings', '/auth'].includes(window.location.pathname)) {
+  // Valid paths including the new landing page
+  const validPaths = ['/', '/messages', '/recipients', '/settings', '/auth', '/landing'];
+  
+  // If we're at an unexpected path, redirect to /landing
+  if (!validPaths.includes(window.location.pathname)) {
     // For debugging purposes
     console.log("Redirecting from unknown path:", window.location.pathname);
     
-    // Redirect to auth page after a short delay (to allow logs to be visible)
+    // Redirect to landing page after a short delay (to allow logs to be visible)
     setTimeout(() => {
-      window.location.href = "/auth";
+      window.location.href = "/landing";
     }, 100);
     
-    return <div>Redirecting to login page...</div>;
+    return <div>Redirecting to landing page...</div>;
   }
   
   return (
     <Switch>
+      <Route path="/landing">
+        <LandingPage />
+      </Route>
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/messages" component={MessagesPage} />
       <ProtectedRoute path="/recipients" component={RecipientsPage} />

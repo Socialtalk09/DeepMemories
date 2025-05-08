@@ -1,182 +1,188 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { AlignJustify, Bell, Heart, LogOut, Settings, User } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/ui/logo";
+import { useAuth } from "@/hooks/use-auth";
+import { 
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Header() {
-  const [location] = useLocation();
+  const [_, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(false);
   
-  const navItems = [
-    { name: "Dashboard", path: "/" },
-    { name: "Messages", path: "/messages" },
-    { name: "Recipients", path: "/recipients" },
-    { name: "Settings", path: "/settings" }
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+  
+  const navigationItems = [
+    { label: "Home", href: user ? "/" : "/landing", active: true },
+    { label: "Features", href: "#features" },
+    { label: "About", href: "#about" },
+    { label: "Team", href: "#team" },
   ];
   
-  const userInitials = user?.firstName && user?.lastName 
-    ? `${user.firstName[0]}${user.lastName[0]}`
-    : user?.username?.substring(0, 2).toUpperCase();
-  
-  const userName = user?.firstName && user?.lastName
-    ? `${user.firstName} ${user.lastName}`
-    : user?.username;
-  
+  const handleNavigation = (href: string) => {
+    setIsOpen(false);
+    if (href.startsWith('#')) {
+      // Handle anchor links
+      const element = document.getElementById(href.substring(1));
+      if (element) element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Handle page navigation
+      setLocation(href);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <Logo size="md" />
-            </div>
-            
-            <nav className="hidden md:ml-10 md:flex md:space-x-1">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.path} 
-                  href={item.path}
-                  className={`${
-                    location === item.path
-                      ? "text-primary border-b-2 border-primary font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  } px-3 py-2 rounded-md mx-1 text-sm transition-colors duration-200`}
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center">
+        <div className="flex gap-6 md:gap-10 items-center">
+          <Logo showText={true} />
+          
+          {!isMobile && (
+            <nav className="hidden md:flex gap-6">
+              {navigationItems.map((item, index) => (
+                <a
+                  key={index}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation(item.href);
+                  }}
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    item.active ? "text-foreground" : "text-muted-foreground"
+                  }`}
                 >
-                  {item.name}
-                </Link>
+                  {item.label}
+                </a>
               ))}
             </nav>
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full"></span>
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full ml-1">
-                  <Avatar className="h-9 w-9 border-2 border-muted cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-sm">
-                    <AvatarFallback className="bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 font-medium">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 font-medium">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col space-y-0.5">
-                    <p className="text-sm font-medium leading-none">{userName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex cursor-pointer items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex cursor-pointer items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={() => logoutMutation.mutate()}
+          )}
+        </div>
+        
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <nav className="flex items-center space-x-2">
+            {!user ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/auth")}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  Log in
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setLocation("/auth")}
+                >
+                  Sign up
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                >
+                  Sign out
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setLocation("/")}
+                >
+                  Dashboard
+                </Button>
+              </>
+            )}
             
-            {/* Mobile menu */}
-            <div className="md:hidden ml-2">
-              <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            {isMobile && (
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10">
-                    <AlignJustify className="h-5 w-5" />
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center py-6">
-                      <Logo size="md" />
-                    </div>
-                    
-                    <nav className="flex flex-col space-y-1 py-6">
-                      {navItems.map((item) => (
-                        <Link 
-                          key={item.path} 
-                          href={item.path}
-                          onClick={() => setIsMenuOpen(false)}
-                          className={`${
-                            location === item.path
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-foreground hover:bg-muted"
-                          } px-4 py-3 rounded-md text-base transition-colors duration-200`}
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
-                    </nav>
-                    
-                    <div className="mt-auto">
-                      <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 font-medium">
-                              {userInitials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{userName}</p>
-                            <p className="text-sm text-muted-foreground">{user?.email}</p>
-                          </div>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-center border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive" 
+                <SheetContent side="right">
+                  <SheetHeader className="mb-4">
+                    <SheetTitle>Menu</SheetTitle>
+                  </SheetHeader>
+                  <nav className="flex flex-col space-y-4">
+                    {navigationItems.map((item, index) => (
+                      <a
+                        key={index}
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigation(item.href);
+                        }}
+                        className={`text-sm font-medium transition-colors hover:text-primary ${
+                          item.active ? "text-foreground" : "text-muted-foreground"
+                        }`}
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                    {!user ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="justify-start"
                           onClick={() => {
-                            logoutMutation.mutate();
-                            setIsMenuOpen(false);
+                            setIsOpen(false);
+                            setLocation("/auth");
                           }}
                         >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>Log out</span>
+                          Log in
                         </Button>
-                      </div>
-                    </div>
-                  </div>
+                        <Button
+                          className="justify-start"
+                          onClick={() => {
+                            setIsOpen(false);
+                            setLocation("/auth");
+                          }}
+                        >
+                          Sign up
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="justify-start"
+                          onClick={() => {
+                            setIsOpen(false);
+                            handleLogout();
+                          }}
+                        >
+                          Sign out
+                        </Button>
+                        <Button
+                          className="justify-start"
+                          onClick={() => {
+                            setIsOpen(false);
+                            setLocation("/");
+                          }}
+                        >
+                          Dashboard
+                        </Button>
+                      </>
+                    )}
+                  </nav>
                 </SheetContent>
               </Sheet>
-            </div>
-          </div>
+            )}
+          </nav>
         </div>
       </div>
     </header>
