@@ -35,25 +35,27 @@ export default function Header() {
     : user?.username;
   
   return (
-    <header className="bg-white shadow-sm">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <Heart className="text-primary h-6 w-6 mr-2" />
-              <span className="font-semibold text-xl text-gray-800">Dearly</span>
+              <div className="bg-primary-50 p-1.5 rounded-md mr-2">
+                <Heart className="text-primary h-5 w-5" />
+              </div>
+              <span className="gradient-heading font-bold text-xl">Dearly</span>
             </div>
             
-            <nav className="hidden md:ml-10 md:flex md:space-x-8">
+            <nav className="hidden md:ml-10 md:flex md:space-x-1">
               {navItems.map((item) => (
                 <Link 
                   key={item.path} 
                   href={item.path}
                   className={`${
                     location === item.path
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } px-1 pt-1 font-medium text-sm`}
+                      ? "text-primary border-b-2 border-primary font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  } px-3 py-2 rounded-md mx-1 text-sm transition-colors duration-200`}
                 >
                   {item.name}
                 </Link>
@@ -61,30 +63,36 @@ export default function Header() {
             </nav>
           </div>
           
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" className="mr-2 text-gray-500">
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
               <Bell className="h-5 w-5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full"></span>
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8 cursor-pointer">
-                    <AvatarFallback className="bg-primary-200 text-primary-600 font-medium">
+                <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full ml-1">
+                  <Avatar className="h-9 w-9 border-2 border-muted cursor-pointer transition-all duration-200 hover:border-primary hover:shadow-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 font-medium">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
+              <DropdownMenuContent className="w-60" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 font-medium">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col space-y-0.5">
                     <p className="text-sm font-medium leading-none">{userName}</p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user?.email}
                     </p>
                   </div>
-                </DropdownMenuLabel>
+                </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex cursor-pointer items-center">
@@ -100,7 +108,7 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="cursor-pointer text-destructive focus:text-destructive"
                   onClick={() => logoutMutation.mutate()}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -110,21 +118,23 @@ export default function Header() {
             </DropdownMenu>
             
             {/* Mobile menu */}
-            <div className="md:hidden ml-4">
+            <div className="md:hidden ml-2">
               <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <AlignJustify className="h-6 w-6" />
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <AlignJustify className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right">
-                  <div className="flex flex-col space-y-6 py-6">
-                    <div className="flex items-center">
-                      <Heart className="text-primary h-5 w-5 mr-2" />
-                      <span className="font-semibold text-lg text-gray-800">Dearly</span>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center py-6">
+                      <div className="bg-primary-50 p-1.5 rounded-md mr-2">
+                        <Heart className="text-primary h-5 w-5" />
+                      </div>
+                      <span className="gradient-heading font-bold text-xl">Dearly</span>
                     </div>
                     
-                    <nav className="flex flex-col space-y-4">
+                    <nav className="flex flex-col space-y-1 py-6">
                       {navItems.map((item) => (
                         <Link 
                           key={item.path} 
@@ -132,27 +142,40 @@ export default function Header() {
                           onClick={() => setIsMenuOpen(false)}
                           className={`${
                             location === item.path
-                              ? "text-primary font-medium"
-                              : "text-gray-600 hover:text-gray-900"
-                          } px-1 py-2 text-base`}
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-foreground hover:bg-muted"
+                          } px-4 py-3 rounded-md text-base transition-colors duration-200`}
                         >
                           {item.name}
                         </Link>
                       ))}
                     </nav>
                     
-                    <div className="pt-6 border-t border-gray-200">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start" 
-                        onClick={() => {
-                          logoutMutation.mutate();
-                          setIsMenuOpen(false);
-                        }}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                      </Button>
+                    <div className="mt-auto">
+                      <div className="bg-muted/50 rounded-lg p-4 mb-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 font-medium">
+                              {userInitials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{userName}</p>
+                            <p className="text-sm text-muted-foreground">{user?.email}</p>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-center border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive" 
+                          onClick={() => {
+                            logoutMutation.mutate();
+                            setIsMenuOpen(false);
+                          }}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </SheetContent>
