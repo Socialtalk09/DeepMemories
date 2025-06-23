@@ -38,9 +38,18 @@ export function decryptMessage(encryptedContent: string, encryptedKey: string): 
       // This is the server-side format: base64.hash
       const [encoded, hash] = encryptedContent.split('.');
       
-      // For now, just decode the base64 part since the hash verification
-      // would require the same key computation as the server
-      return atob(encoded);
+      // Decode the base64 content
+      const decoded = atob(encoded);
+      
+      // Check if this is double-encoded (legacy messages with CryptoJS + server encryption)
+      if (decoded.startsWith('U2FsdGVkX1')) {
+        // This is a CryptoJS encrypted message that was then base64 encoded by server
+        // For legacy messages, show a placeholder since the original encryption key is different
+        return '[Legacy message - please edit to update content]';
+      }
+      
+      // Regular server-side encrypted message
+      return decoded;
     }
     
     // Fall back to CryptoJS decryption for client-side encrypted messages
@@ -51,7 +60,7 @@ export function decryptMessage(encryptedContent: string, encryptedKey: string): 
     return originalMessage;
   } catch (error) {
     console.error('Failed to decrypt message:', error);
-    return '[Unable to decrypt message]';
+    return '[Unable to decrypt message - please edit to update]';
   }
 }
 
