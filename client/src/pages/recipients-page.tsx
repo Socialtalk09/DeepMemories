@@ -52,10 +52,14 @@ export default function RecipientsPage() {
   
   const createRecipientMutation = useMutation({
     mutationFn: async (data: RecipientFormValues) => {
+      console.log("Adding recipient:", data);
       const res = await apiRequest("POST", "/api/recipients", data);
-      return await res.json();
+      const result = await res.json();
+      console.log("Recipient creation response:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Recipient created successfully:", data);
       toast({
         title: "Recipient created",
         description: "The recipient has been successfully created."
@@ -65,6 +69,7 @@ export default function RecipientsPage() {
       form.reset();
     },
     onError: (error) => {
+      console.error("Error creating recipient:", error);
       toast({
         title: "Error",
         description: error.message,

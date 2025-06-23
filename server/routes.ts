@@ -25,14 +25,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     
     try {
+      console.log("Creating recipient for user:", req.user.id);
+      console.log("Request body:", req.body);
+      
       const validatedData = insertRecipientSchema.parse({
         ...req.body,
         userId: req.user.id
       });
       
+      console.log("Validated data:", validatedData);
+      
       const recipient = await storage.createRecipient(validatedData);
+      console.log("Created recipient:", recipient);
+      
       res.status(201).json(recipient);
     } catch (error) {
+      console.error("Error creating recipient:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid recipient data", errors: error.errors });
       }
