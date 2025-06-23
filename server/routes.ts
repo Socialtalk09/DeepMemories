@@ -167,12 +167,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     
     try {
+      console.log("Creating message for user:", req.user.id);
+      console.log("Request body:", req.body);
+      
       const { recipients: recipientIds, ...messageData } = req.body;
       
-      const validatedData = insertMessageSchema.parse({
-        ...messageData,
+      // Import encryption utilities
+      const { formatMessage } = await import("./encryption.js");
+      
+      // Encrypt the message content
+      const { encryptedContent, encryptedKey } = formatMessage(messageData.content || "");
+      
+      // Prepare message data with all required fields
+      const messageToValidate = {
+        title: messageData.title || "",
+        content: encryptedContent,
+        type: messageData.type || "text",
+        encryptedKey: encryptedKey,
+        status: messageData.status || "draft",
+        deliveryType: messageData.deliveryType || "date",
+        deliveryDate: messageData.deliveryDate ? new Date(messageData.deliveryDate) : null,
         userId: req.user.id
-      });
+      };
+      
+      console.log("Data to validate:", messageToValidate);
+      
+      const validatedData = insertMessageSchema.parse(messageToValidate);
+      
+      console.log("Validated data:", validatedData);
       
       const message = await storage.createMessage(validatedData);
       
@@ -189,9 +211,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
+      console.log("Created message:", message);
       res.status(201).json(message);
     } catch (error) {
+      console.error("Message creation error:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid message data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create message" });
