@@ -33,6 +33,9 @@ export async function apiRequest(
     cache: "no-store",
   });
 
+  // Log session info for debugging
+  console.log(`API ${method} ${url} - Status: ${res.status}`);
+  
   await throwIfResNotOk(res);
   return res;
 }

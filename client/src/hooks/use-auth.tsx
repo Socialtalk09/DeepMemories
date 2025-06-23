@@ -45,6 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initial check on mount and after any navigation
   useEffect(() => {
     checkAuthStatus();
+    
+    // Set up periodic session check to maintain authentication
+    const intervalId = setInterval(() => {
+      checkAuthStatus();
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   const loginMutation = useMutation({

@@ -288,9 +288,7 @@ export default function RecipientsPage() {
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-              console.error("Form validation errors:", errors);
-            })} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -360,32 +358,8 @@ export default function RecipientsPage() {
                   Cancel
                 </Button>
                 <Button 
-                  type="button"
+                  type="submit"
                   disabled={createRecipientMutation.isPending || updateRecipientMutation.isPending}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    console.log("Submit button clicked");
-                    console.log("Form state:", form.formState);
-                    const formData = form.getValues();
-                    console.log("Form values:", formData);
-                    console.log("Form errors:", form.formState.errors);
-                    
-                    // Validate form data
-                    const validation = recipientSchema.safeParse(formData);
-                    if (!validation.success) {
-                      console.error("Validation failed:", validation.error);
-                      return;
-                    }
-                    
-                    console.log("Validation passed, submitting data:", validation.data);
-                    
-                    // Directly call mutation
-                    try {
-                      await createRecipientMutation.mutateAsync(validation.data);
-                    } catch (error) {
-                      console.error("Mutation failed:", error);
-                    }
-                  }}
                 >
                   {(createRecipientMutation.isPending || updateRecipientMutation.isPending) ? (
                     <>

@@ -50,11 +50,11 @@ export function setupAuth(app: Express) {
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Always false for development
       sameSite: "lax",
       path: "/"
     },
-    name: "dearly.sid" // Custom session name for easier identification
+    name: "connect.sid" // Standard session name
   };
 
   app.set("trust proxy", 1);
