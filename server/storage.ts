@@ -1,10 +1,10 @@
 import { users, type User, type InsertUser, recipients, type Recipient, type InsertRecipient, messages, type Message, type InsertMessage, messageRecipients, type MessageRecipient, type InsertMessageRecipient, trustedContacts, type TrustedContact, type InsertTrustedContact } from "@shared/schema";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { db, pool } from "./db";
+import MemoryStore from "memorystore";
+import { db } from "./db";
 import { eq, or, inArray } from "drizzle-orm";
 
-const PostgresSessionStore = connectPg(session);
+const MemStore = MemoryStore(session);
 
 // modify the interface with any CRUD methods
 // you might need
@@ -50,9 +50,8 @@ export class DatabaseStorage implements IStorage {
   sessionStore: any; // Using any type to resolve TypeScript error
   
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true 
+    this.sessionStore = new MemStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
     });
   }
   
