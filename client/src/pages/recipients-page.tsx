@@ -362,17 +362,29 @@ export default function RecipientsPage() {
                 <Button 
                   type="button"
                   disabled={createRecipientMutation.isPending || updateRecipientMutation.isPending}
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.preventDefault();
                     console.log("Submit button clicked");
                     console.log("Form state:", form.formState);
-                    console.log("Form values:", form.getValues());
+                    const formData = form.getValues();
+                    console.log("Form values:", formData);
                     console.log("Form errors:", form.formState.errors);
                     
-                    // Manually trigger form submission
-                    const formData = form.getValues();
-                    console.log("Manually triggering submission with:", formData);
-                    onSubmit(formData);
+                    // Validate form data
+                    const validation = recipientSchema.safeParse(formData);
+                    if (!validation.success) {
+                      console.error("Validation failed:", validation.error);
+                      return;
+                    }
+                    
+                    console.log("Validation passed, submitting data:", validation.data);
+                    
+                    // Directly call mutation
+                    try {
+                      await createRecipientMutation.mutateAsync(validation.data);
+                    } catch (error) {
+                      console.error("Mutation failed:", error);
+                    }
                   }}
                 >
                   {(createRecipientMutation.isPending || updateRecipientMutation.isPending) ? (
