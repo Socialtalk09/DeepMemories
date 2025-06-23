@@ -288,7 +288,9 @@ export default function RecipientsPage() {
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error("Form validation errors:", errors);
+            })} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -360,6 +362,12 @@ export default function RecipientsPage() {
                 <Button 
                   type="submit"
                   disabled={createRecipientMutation.isPending || updateRecipientMutation.isPending}
+                  onClick={() => {
+                    console.log("Submit button clicked");
+                    console.log("Form state:", form.formState);
+                    console.log("Form values:", form.getValues());
+                    console.log("Form errors:", form.formState.errors);
+                  }}
                 >
                   {(createRecipientMutation.isPending || updateRecipientMutation.isPending) ? (
                     <>
