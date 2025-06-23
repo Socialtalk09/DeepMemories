@@ -22,7 +22,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/recipients", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    console.log("Session ID:", req.sessionID);
+    console.log("Session data:", req.session);
+    console.log("User authenticated:", req.isAuthenticated());
+    console.log("User data:", req.user);
+    
+    if (!req.isAuthenticated()) {
+      console.log("Authentication failed - returning 401");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     
     try {
       console.log("Creating recipient for user:", req.user.id);
