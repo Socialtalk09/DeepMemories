@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Message, Recipient } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Clock, Edit, Loader2, MessageSquarePlus, MoreHorizontal, Trash } from "lucide-react";
+import { decryptMessage } from "@/lib/encryption";
 import {
   Card,
   CardContent,
@@ -24,6 +25,7 @@ interface MessageListProps {
   recipients: Recipient[];
   isLoading: boolean;
   onCreateMessage: () => void;
+  onEditMessage?: (message: Message) => void;
   showAllMessages?: boolean;
 }
 
@@ -32,6 +34,7 @@ export default function MessageList({
   recipients,
   isLoading,
   onCreateMessage,
+  onEditMessage,
   showAllMessages = false,
 }: MessageListProps) {
   const [filterValue, setFilterValue] = useState<"all" | "scheduled" | "draft">("all");
@@ -75,8 +78,9 @@ export default function MessageList({
   };
   
   const handleEditMessage = (message: Message) => {
-    // This would connect to your edit message flow
-    console.log("Edit message:", message.id);
+    if (onEditMessage) {
+      onEditMessage(message);
+    }
   };
   
   const handleDeleteMessage = (message: Message) => {
@@ -178,7 +182,15 @@ export default function MessageList({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-sm line-clamp-2">{message.content}</p>
+                  <p className="text-sm line-clamp-2">
+                    {(() => {
+                      try {
+                        return decryptMessage(message.content, message.encryptedKey);
+                      } catch (error) {
+                        return "[Unable to decrypt message]";
+                      }
+                    })()}
+                  </p>
                   
                   <div className="flex flex-col sm:flex-row gap-2 justify-between text-sm text-muted-foreground">
                     <div className="flex items-center">

@@ -3,6 +3,7 @@ import { useState } from "react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { CreateMessageModal } from "@/components/messages/create-message-modal";
+import { EditMessageModal } from "@/components/messages/edit-message-modal";
 import MessageList from "@/components/messages/message-list";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -10,6 +11,7 @@ import { Message, Recipient } from "@shared/schema";
 
 export default function MessagesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   
   const { data: messages = [], isLoading: isLoadingMessages } = useQuery<Message[]>({
     queryKey: ["/api/messages"],
@@ -37,6 +39,7 @@ export default function MessagesPage() {
           isLoading={isLoadingMessages}
           recipients={recipients}
           onCreateMessage={() => setIsCreateModalOpen(true)}
+          onEditMessage={setEditingMessage}
           showAllMessages
         />
       </main>
@@ -46,6 +49,13 @@ export default function MessagesPage() {
       <CreateMessageModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)}
+        recipients={recipients}
+      />
+      
+      <EditMessageModal 
+        isOpen={editingMessage !== null}
+        onClose={() => setEditingMessage(null)}
+        message={editingMessage}
         recipients={recipients}
       />
     </div>

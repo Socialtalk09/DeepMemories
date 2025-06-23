@@ -32,15 +32,27 @@ export function formatMessage(message: string): { encryptedContent: string, encr
  * @returns The decrypted message
  */
 export function decryptMessage(encryptedContent: string, encryptedKey: string): string {
-  // In a real implementation, we would first decrypt the encryptedKey using the
-  // recipient's private key. For this demo, we'll just use it directly.
-  const symmetricKey = encryptedKey;
-  
-  // Decrypt the message using the symmetric key
-  const bytes = CryptoJS.AES.decrypt(encryptedContent, symmetricKey);
-  const originalMessage = bytes.toString(CryptoJS.enc.Utf8);
-  
-  return originalMessage;
+  try {
+    // Check if this is the new server-side encryption format
+    if (encryptedContent.includes('.')) {
+      // This is the server-side format: base64.hash
+      const [encoded, hash] = encryptedContent.split('.');
+      
+      // For now, just decode the base64 part since the hash verification
+      // would require the same key computation as the server
+      return atob(encoded);
+    }
+    
+    // Fall back to CryptoJS decryption for client-side encrypted messages
+    const symmetricKey = encryptedKey;
+    const bytes = CryptoJS.AES.decrypt(encryptedContent, symmetricKey);
+    const originalMessage = bytes.toString(CryptoJS.enc.Utf8);
+    
+    return originalMessage;
+  } catch (error) {
+    console.error('Failed to decrypt message:', error);
+    return '[Unable to decrypt message]';
+  }
 }
 
 /**

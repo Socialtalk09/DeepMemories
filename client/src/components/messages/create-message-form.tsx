@@ -57,23 +57,24 @@ interface CreateMessageFormProps {
   recipients: Recipient[];
   onSubmit: (values: MessageFormValues & { notifyAnonymous: boolean; notifyPreview: boolean }) => void;
   isPending: boolean;
+  initialData?: Partial<MessageFormValues>;
 }
 
-export default function CreateMessageForm({ recipients, onSubmit, isPending }: CreateMessageFormProps) {
+export default function CreateMessageForm({ recipients, onSubmit, isPending, initialData }: CreateMessageFormProps) {
   const [notifyAnonymous, setNotifyAnonymous] = useState(true);
   const [notifyPreview, setNotifyPreview] = useState(false);
-  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = useState<number[]>(initialData?.recipientIds || []);
   const [commandOpen, setCommandOpen] = useState(false);
 
   const form = useForm<MessageFormValues>({
     resolver: zodResolver(messageSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      type: "text",
-      deliveryType: "date",
-      deliveryDate: null,
-      recipientIds: [],
+      title: initialData?.title || "",
+      content: initialData?.content || "",
+      type: initialData?.type || "text",
+      deliveryType: initialData?.deliveryType || "date",
+      deliveryDate: initialData?.deliveryDate || null,
+      recipientIds: initialData?.recipientIds || [],
     },
   });
 
