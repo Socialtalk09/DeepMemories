@@ -49,10 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      console.log("Attempting login with:", credentials);
       const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      console.log("Login response status:", res.status);
+      const result = await res.json();
+      console.log("Login response data:", result);
+      return result;
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
+      console.log("Login successful, user data:", user);
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Login successful",
@@ -66,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, 500);
     },
     onError: (error: Error) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message,
@@ -76,10 +82,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
+      console.log("Attempting registration with:", credentials);
       const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      console.log("Registration response status:", res.status);
+      const result = await res.json();
+      console.log("Registration response data:", result);
+      return result;
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
+      console.log("Registration successful, user data:", user);
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
@@ -93,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, 500);
     },
     onError: (error: Error) => {
+      console.error("Registration error:", error);
       toast({
         title: "Registration failed",
         description: error.message,
