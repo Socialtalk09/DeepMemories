@@ -62,6 +62,7 @@ export default function AuthPage() {
   };
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
+    console.log("Registration form data:", data);
     registerMutation.mutate(data);
   };
 
@@ -185,6 +186,15 @@ export default function AuthPage() {
 
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                  {/* Debug form errors */}
+                  {Object.keys(registerForm.formState.errors).length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-sm text-red-600">Form errors:</p>
+                      <pre className="text-xs text-red-500">
+                        {JSON.stringify(registerForm.formState.errors, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={registerForm.control}
@@ -235,9 +245,17 @@ export default function AuthPage() {
                             type="email" 
                             className="py-6 bg-gray-50 border-gray-200" 
                             {...field} 
+                            onChange={(e) => {
+                              console.log("Email field changed:", e.target.value);
+                              field.onChange(e);
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
+                        {/* Debug current email value */}
+                        <div className="text-xs text-gray-500">
+                          Current email value: {registerForm.watch("email")}
+                        </div>
                       </FormItem>
                     )}
                   />
