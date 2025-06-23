@@ -53,10 +53,16 @@ export default function RecipientsPage() {
   const createRecipientMutation = useMutation({
     mutationFn: async (data: RecipientFormValues) => {
       console.log("Adding recipient:", data);
-      const res = await apiRequest("POST", "/api/recipients", data);
-      const result = await res.json();
-      console.log("Recipient creation response:", result);
-      return result;
+      try {
+        const res = await apiRequest("POST", "/api/recipients", data);
+        console.log("API request completed, status:", res.status);
+        const result = await res.json();
+        console.log("Recipient creation response:", result);
+        return result;
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       console.log("Recipient created successfully:", data);
@@ -123,9 +129,14 @@ export default function RecipientsPage() {
   });
   
   const onSubmit = (data: RecipientFormValues) => {
+    console.log("Form submitted with data:", data);
+    console.log("Editing recipient:", editingRecipient);
+    
     if (editingRecipient) {
+      console.log("Triggering update mutation");
       updateRecipientMutation.mutate({ id: editingRecipient.id, recipient: data });
     } else {
+      console.log("Triggering create mutation");
       createRecipientMutation.mutate(data);
     }
   };
