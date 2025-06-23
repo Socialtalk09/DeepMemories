@@ -14,7 +14,7 @@ import { Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CreateMessageForm from "./create-message-form";
 import { z } from "zod";
-import { formatMessage, decryptMessage } from "@/lib/encryption";
+import { decryptMessage } from "@/lib/encryption";
 
 interface EditMessageModalProps {
   isOpen: boolean;
@@ -57,14 +57,10 @@ export function EditMessageModal({ isOpen, onClose, message, recipients }: EditM
     mutationFn: async (data: MessageFormValues) => {
       if (!message) throw new Error("No message to update");
       
-      // Encrypt the message content
-      const { encryptedContent, encryptedKey } = formatMessage(data.content);
-      
-      // Prepare the message data
+      // Prepare the message data - backend will handle encryption
       const messageData = {
         title: data.title,
-        content: encryptedContent,
-        encryptedKey: encryptedKey,
+        content: data.content, // Send plain text, backend will encrypt
         type: data.type,
         deliveryType: data.deliveryType,
         deliveryDate: data.deliveryDate || null,

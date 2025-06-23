@@ -14,7 +14,7 @@ import { MessageSquarePlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CreateMessageForm from "./create-message-form";
 import { z } from "zod";
-import { formatMessage } from "@/lib/encryption";
+
 
 interface CreateMessageModalProps {
   isOpen: boolean;
@@ -40,14 +40,10 @@ export function CreateMessageModal({ isOpen, onClose, recipients }: CreateMessag
   // Create mutation for saving a new message
   const createMessageMutation = useMutation({
     mutationFn: async (data: MessageFormValues) => {
-      // Encrypt the message content
-      const { encryptedContent, encryptedKey } = formatMessage(data.content);
-      
-      // Prepare the message data
+      // Prepare the message data - backend will handle encryption
       const messageData = {
         title: data.title,
-        content: encryptedContent,
-        encryptedKey: encryptedKey,
+        content: data.content, // Send plain text, backend will encrypt
         type: data.type,
         deliveryType: data.deliveryType,
         deliveryDate: data.deliveryDate || null,
