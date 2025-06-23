@@ -113,7 +113,7 @@ export default function CreateMessageForm({ recipients, onSubmit, isPending }: C
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 overflow-y-visible">
         <div className="grid gap-6">
           <div className="grid gap-3">
             <FormField
