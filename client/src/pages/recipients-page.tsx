@@ -360,13 +360,19 @@ export default function RecipientsPage() {
                   Cancel
                 </Button>
                 <Button 
-                  type="submit"
+                  type="button"
                   disabled={createRecipientMutation.isPending || updateRecipientMutation.isPending}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     console.log("Submit button clicked");
                     console.log("Form state:", form.formState);
                     console.log("Form values:", form.getValues());
                     console.log("Form errors:", form.formState.errors);
+                    
+                    // Manually trigger form submission
+                    const formData = form.getValues();
+                    console.log("Manually triggering submission with:", formData);
+                    onSubmit(formData);
                   }}
                 >
                   {(createRecipientMutation.isPending || updateRecipientMutation.isPending) ? (
