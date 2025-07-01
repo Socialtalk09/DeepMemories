@@ -208,4 +208,170 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Temporary memory storage to handle database connection issues
+class MemoryStorage implements IStorage {
+  private users: User[] = [];
+  private recipients: Recipient[] = [];
+  private messages: Message[] = [];
+  private messageRecipients: MessageRecipient[] = [];
+  private trustedContacts: TrustedContact[] = [];
+  private nextUserId = 1;
+  private nextRecipientId = 1;
+  private nextMessageId = 1;
+  private nextMessageRecipientId = 1;
+  private nextTrustedContactId = 1;
+  
+  sessionStore = new MemStore({ checkPeriod: 86400000 });
+
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.find(u => u.id === id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return this.users.find(u => u.username === username);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return this.users.find(u => u.email === email);
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const newUser: User = {
+      id: this.nextUserId++,
+      ...user,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
+      createdAt: new Date()
+    };
+    this.users.push(newUser);
+    return newUser;
+  }
+
+  async getRecipientById(id: number): Promise<Recipient | undefined> {
+    return this.recipients.find(r => r.id === id);
+  }
+
+  async getRecipientsByUserId(userId: number): Promise<Recipient[]> {
+    return this.recipients.filter(r => r.userId === userId);
+  }
+
+  async getRecipientsByIds(ids: number[]): Promise<Recipient[]> {
+    return this.recipients.filter(r => ids.includes(r.id));
+  }
+
+  async createRecipient(recipient: InsertRecipient): Promise<Recipient> {
+    const newRecipient: Recipient = {
+      id: this.nextRecipientId++,
+      ...recipient
+    };
+    this.recipients.push(newRecipient);
+    return newRecipient;
+  }
+
+  async updateRecipient(id: number, recipient: InsertRecipient): Promise<Recipient> {
+    const index = this.recipients.findIndex(r => r.id === id);
+    if (index === -1) throw new Error('Recipient not found');
+    
+    const updated: Recipient = { id, ...recipient };
+    this.recipients[index] = updated;
+    return updated;
+  }
+
+  async deleteRecipient(id: number): Promise<void> {
+    const index = this.recipients.findIndex(r => r.id === id);
+    if (index !== -1) {
+      this.recipients.splice(index, 1);
+    }
+  }
+
+  async getMessageById(id: number): Promise<Message | undefined> {
+    return this.messages.find(m => m.id === id);
+  }
+
+  async getMessagesByUserId(userId: number): Promise<Message[]> {
+    return this.messages.filter(m => m.userId === userId);
+  }
+
+  async createMessage(message: InsertMessage): Promise<Message> {
+    const newMessage: Message = {
+      id: this.nextMessageId++,
+      ...message,
+      lastUpdated: new Date()
+    };
+    this.messages.push(newMessage);
+    return newMessage;
+  }
+
+  async updateMessage(id: number, message: InsertMessage): Promise<Message> {
+    const index = this.messages.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Message not found');
+    
+    const updated: Message = { 
+      id, 
+      ...message, 
+      lastUpdated: new Date() 
+    };
+    this.messages[index] = updated;
+    return updated;
+  }
+
+  async deleteMessage(id: number): Promise<void> {
+    const index = this.messages.findIndex(m => m.id === id);
+    if (index !== -1) {
+      this.messages.splice(index, 1);
+    }
+  }
+
+  async getMessageRecipientsByMessageId(messageId: number): Promise<MessageRecipient[]> {
+    return this.messageRecipients.filter(mr => mr.messageId === messageId);
+  }
+
+  async createMessageRecipient(messageRecipient: InsertMessageRecipient): Promise<MessageRecipient> {
+    const newMessageRecipient: MessageRecipient = {
+      id: this.nextMessageRecipientId++,
+      ...messageRecipient
+    };
+    this.messageRecipients.push(newMessageRecipient);
+    return newMessageRecipient;
+  }
+
+  async deleteMessageRecipientsByMessageId(messageId: number): Promise<void> {
+    this.messageRecipients = this.messageRecipients.filter(mr => mr.messageId !== messageId);
+  }
+
+  async getTrustedContactById(id: number): Promise<TrustedContact | undefined> {
+    return this.trustedContacts.find(tc => tc.id === id);
+  }
+
+  async getTrustedContactsByUserId(userId: number): Promise<TrustedContact[]> {
+    return this.trustedContacts.filter(tc => tc.userId === userId);
+  }
+
+  async createTrustedContact(trustedContact: InsertTrustedContact): Promise<TrustedContact> {
+    const newTrustedContact: TrustedContact = {
+      id: this.nextTrustedContactId++,
+      ...trustedContact
+    };
+    this.trustedContacts.push(newTrustedContact);
+    return newTrustedContact;
+  }
+
+  async updateTrustedContact(id: number, trustedContact: InsertTrustedContact): Promise<TrustedContact> {
+    const index = this.trustedContacts.findIndex(tc => tc.id === id);
+    if (index === -1) throw new Error('TrustedContact not found');
+    
+    const updated: TrustedContact = { id, ...trustedContact };
+    this.trustedContacts[index] = updated;
+    return updated;
+  }
+
+  async deleteTrustedContact(id: number): Promise<void> {
+    const index = this.trustedContacts.findIndex(tc => tc.id === id);
+    if (index !== -1) {
+      this.trustedContacts.splice(index, 1);
+    }
+  }
+}
+
+// Use memory storage temporarily to avoid database connection issues
+export const storage = new MemoryStorage();

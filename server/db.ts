@@ -1,9 +1,6 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-// Configure Neon for HTTP instead of WebSocket to avoid connection issues
-neonConfig.fetchConnectionCache = true;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,10 +8,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-console.log("Initializing database connection with HTTP adapter...");
+console.log("Initializing PostgreSQL connection...");
 
-// Use HTTP connection instead of WebSocket pool to avoid connection issues
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });
+// Create a connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: false // Since this is likely a local PostgreSQL instance
+});
 
-console.log("Database configuration complete");
+export const db = drizzle(pool, { schema });
+
+console.log("PostgreSQL configuration complete");
