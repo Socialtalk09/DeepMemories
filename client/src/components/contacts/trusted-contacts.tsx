@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Check, Edit, Loader2, MoreHorizontal, Plus, Shield, Trash } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrustedContact } from "@shared/schema";
@@ -30,31 +33,107 @@ export default function TrustedContacts({ contacts, isLoading }: TrustedContacts
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<TrustedContact | null>(null);
-  const [isPending, setIsPending] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/trusted-contacts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create trusted contact");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trusted-contacts"] });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Trusted contact added successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add trusted contact",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: { id: number; contact: any }) => {
+      const response = await fetch(`/api/trusted-contacts/${data.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data.contact),
+      });
+      if (!response.ok) throw new Error("Failed to update trusted contact");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trusted-contacts"] });
+      setIsEditDialogOpen(false);
+      setSelectedContact(null);
+      toast({
+        title: "Success",
+        description: "Trusted contact updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update trusted contact",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/trusted-contacts/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to delete trusted contact");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trusted-contacts"] });
+      toast({
+        title: "Success",
+        description: "Trusted contact deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete trusted contact",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddContact = (data: any) => {
-    // This would connect to your createTrustedContact mutation
-    console.log("Adding contact:", data);
-    setIsPending(true);
-    setTimeout(() => {
-      setIsPending(false);
-      setIsAddDialogOpen(false);
-    }, 1000);
+    createMutation.mutate(data);
   };
   
   const handleEditContact = (data: any) => {
-    // This would connect to your updateTrustedContact mutation
-    console.log("Editing contact:", data);
-    setIsPending(true);
-    setTimeout(() => {
-      setIsPending(false);
-      setIsEditDialogOpen(false);
-    }, 1000);
+    if (selectedContact) {
+      updateMutation.mutate({ id: selectedContact.id, contact: data });
+    }
   };
   
   const handleDeleteContact = (contact: TrustedContact) => {
-    // This would connect to your deleteTrustedContact mutation
-    console.log("Deleting contact:", contact);
+    deleteMutation.mutate(contact.id);
   };
   
   return (
@@ -80,7 +159,7 @@ export default function TrustedContacts({ contacts, isLoading }: TrustedContacts
             </DialogHeader>
             <TrustedContactForm 
               onSubmit={handleAddContact} 
-              isPending={isPending}
+              isPending={createMutation.isPending}
             />
           </DialogContent>
         </Dialog>
@@ -189,7 +268,7 @@ export default function TrustedContacts({ contacts, isLoading }: TrustedContacts
             <TrustedContactForm 
               initialData={selectedContact}
               onSubmit={handleEditContact} 
-              isPending={isPending}
+              isPending={updateMutation.isPending}
             />
           )}
         </DialogContent>

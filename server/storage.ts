@@ -350,7 +350,9 @@ class MemoryStorage implements IStorage {
   async createTrustedContact(trustedContact: InsertTrustedContact): Promise<TrustedContact> {
     const newTrustedContact: TrustedContact = {
       id: this.nextTrustedContactId++,
-      ...trustedContact
+      ...trustedContact,
+      phone: trustedContact.phone || null,
+      verified: false
     };
     this.trustedContacts.push(newTrustedContact);
     return newTrustedContact;
@@ -360,7 +362,13 @@ class MemoryStorage implements IStorage {
     const index = this.trustedContacts.findIndex(tc => tc.id === id);
     if (index === -1) throw new Error('TrustedContact not found');
     
-    const updated: TrustedContact = { id, ...trustedContact };
+    const existing = this.trustedContacts[index];
+    const updated: TrustedContact = { 
+      id, 
+      ...trustedContact,
+      phone: trustedContact.phone || null,
+      verified: existing.verified // Preserve verification status
+    };
     this.trustedContacts[index] = updated;
     return updated;
   }
